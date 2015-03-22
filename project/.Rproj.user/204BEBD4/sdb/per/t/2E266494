@@ -1,0 +1,17 @@
+{
+    "contents" : "library(caret)\n#getwd()\ndata <- read.csv(\"pml-training.csv\")\ndim(data)\nstr(data)\n# exploring the data\ndim(data)\nstr(data[,15:20])\ndata <- read.csv(\"pml-training.csv\", na.strings = c(\"NA\",\"\", \"#DIV/0!\"))\ncolSums(is.na(data))\ntable(colSums(is.na(data)))\n#keep cols where no NAs\ndata <- data[,colSums(!is.na(data))==nrow(data)]\n\n#lets drop time and non releted var such as names, window\ndata <- data[,c(-1:-7)]\n\n#test file data\ndatatestfinal <- read.csv(\"pml-testing.csv\", na.strings = c(\"NA\",\"\", \"#DIV/0!\"))\ndatatestfinal <- datatestfinal[,c(-1:-7)]\ndatatestfinal <- datatestfinal[,colSums(!is.na(datatestfinal))==nrow(datatestfinal)]\n\n#removing zero covariates, i.e. variables with no variability and therefore useless\nTrainData <- createDataPartition(y =data$classe , p=0.7, list = FALSE)\ntraining <- data[TrainData,]\ntesting <- data[-TrainData,]\n#nsv <- nearZeroVar(training, saveMetrics = TRUE)\n# studying correlation between factors \n#corrtraining <- abs(cor(training [-53]))\n#diag(corrtraining) <- 0\n#which (corrtraining > 0.8, arr.ind=T)\n#dim(which (corrtraining > 0.8, arr.ind=T))\n\n# random forest:\n# modFit <- train(classe ~ ., data=training, methods='rf', number = 3, repeats = 3, ntree=5)\nmodFit\nmodfitImp <- varImp(modFit)\nmodfitImp\nplot(modfitImp, top = 10)\n\nvariables <- c(\"roll_belt\", \"pitch_forearm\", \"yaw_belt\", \"pitch_belt\", \"magnet_dumbbell_z\", \"magnet_dumbbell_y\", \"roll_forearm\", \"accel_dumbbell_y\", \"magnet_dumbbell_x\", \"roll_dumbbell\", \"classe\")\n\ntraining <- (training[, variables])\nmodFit2 <- train(classe ~ ., data=training, methods='rf', number = 3, repeats = 3, ntree=500)\n\n\ntesting <- (testing[, variables])\npred <- predict(modFit2, testing)\nconfusionMatrix(testing$classe,pred)\n\n# test file for submission    \ndatatestfinal  <- (datatestfinal[, variables])\nvariablestest <- c(\"roll_belt\", \"pitch_forearm\", \"yaw_belt\", \"pitch_belt\", \"magnet_dumbbell_z\", \"magnet_dumbbell_y\", \"roll_forearm\", \"accel_dumbbell_y\", \"magnet_dumbbell_x\", \"roll_dumbbell\", \"classe\")\ndatatestfinal  <- (datatestfinal[, variables])\ntestpred <- predict(modFit2, datatestfinal)\n#\npml_write_files = function(x){\n+     n = length(x)\n+     for(i in 1:n){\n      +         filename = paste0(\"problem_id_\",i,\".txt\")\n      +         write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)\n      +     }\n+ }\n\npml_write_files(testpred)\n\n",
+    "created" : 1426866215769.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3674278230",
+    "id" : "2E266494",
+    "lastKnownWriteTime" : 1427028060,
+    "path" : "C:/Users/Jorge - work/github-repos/Machine L/project/project draft 1.R",
+    "project_path" : "project draft 1.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

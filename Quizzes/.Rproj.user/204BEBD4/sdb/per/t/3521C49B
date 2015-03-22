@@ -1,0 +1,17 @@
+{
+    "contents" : "### Q 2\n\nlibrary(AppliedPredictiveModeling)\ndata(concrete)\nlibrary(caret)\nset.seed(975)\ninTrain = createDataPartition(mixtures$CompressiveStrength, p = 3/4)[[1]]\ntraining = mixtures[ inTrain,]\ntesting = mixtures[-inTrain,]\n\n\nlibrary(Hmisc)\nqplot(,training$CompressiveStrength, colour=training$BlastFurnaceSlag)\ntraining$Age2 <-  cut2(training$Age, g = 5)\nqplot(,training$CompressiveStrength, colour=training$Age2)\n\ntraining$FlyAsh2 <-  cut2(training$FlyAsh, g = 5)\nqplot(,training$CompressiveStrength, colour=training$FlyAsh2)\n\n_________\n### Q 3\n\nlibrary(AppliedPredictiveModeling)\ndata(concrete)\nlibrary(caret)\nset.seed(975)\ninTrain = createDataPartition(mixtures$CompressiveStrength, p = 3/4)[[1]]\ntraining = mixtures[ inTrain,]\ntesting = mixtures[-inTrain,]\n\nhist(training$Superplasticizer)\ntraining$Superplasticizer2 <-  log(training$Superplasticizer)\nhist(training$Superplasticizer2)\n\ntraining$Superplasticizer3 <-  log(training$Superplasticizer + 1)\nhist(training$Superplasticizer3)\n\n_________\n### Q 4\n\nlibrary(caret)\nlibrary(AppliedPredictiveModeling)\nset.seed(3433)\ndata(AlzheimerDisease)\nadData = data.frame(diagnosis,predictors)\ninTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]\ntraining = adData[ inTrain,]\ntesting = adData[-inTrain,]\n\ntrainingIL <- training[, grep(\"IL\", names(training))]\npreProcesstraining <- preProcess(trainingIL[,], method = c(\"center\", \"scale\"))\npreProcess(trainingIL[,-1], method = c(\"pca\"), thresh=0.9 )\n\n\n_________\n### Q 5\nlibrary(caret)\nlibrary(AppliedPredictiveModeling)\nset.seed(3433)\ndata(AlzheimerDisease)\nadData = data.frame(diagnosis,predictors)\ninTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]\ntraining = adData[ inTrain,]\ntesting = adData[-inTrain,]\ntrainingIL <- training[, grep(\"IL\", names(training))]\ntrainingIL <- trainingIL[,-13]\ntrainingIL['diagnosis'] <- training[,1]\npreProcess(trainingIL[,-13], method = c(\"pca\"), thresh=0.8)\n# PCA needed 7 components to capture 80 percent of the variance\n\npreProcIL <- preProcess(trainingIL[,-13], method=\"pca\", pcaComp = 7)\ntrainPCIL <- predict(preProcIL, trainingIL[,-13])\nmodelFitIL <- train(trainingIL$diagnosis ~ ., method=\"glm\", data=trainPCIL)\n\ntestingIL <- testing[, grep(\"IL\", names(testing))]\ntestingIL <- testingIL[,-13]\ntestingIL['diagnosis'] <- testing[,1]\n\ntestIL <- predict(preProcIL, testingIL[,-13])\nconfusionMatrix(testingIL$diagnosis, predict(modelFitIL, testIL))\n\n###   Accuracy : 0.7195 \n\ntrainfit <- train(diagnosis ~ ., data = trainingIL, method = \"glm\")\nconfusionMatrix(testingIL$diagnosis, predict(trainfit, testingIL))\n\n###   Accuracy : 0.6463\n",
+    "created" : 1425812252877.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1713995849",
+    "id" : "3521C49B",
+    "lastKnownWriteTime" : 1426510307,
+    "path" : "C:/Users/Jorge - work/github-repos/Machine L/Quizzes/quizz2.R",
+    "project_path" : "quizz2.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

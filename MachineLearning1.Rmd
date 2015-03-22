@@ -1,0 +1,109 @@
+---
+title: "Practical Machine Learning"
+author: "Jorge B"
+date: "Saturday, March 21, 2015"
+output: html_document
+---
+
+In this project the goal will be to use data from accelerometers on the belt, forearm, arm, and dumbellThe to predict the manner in which  6 participants did their exercise.
+
+- The data for this project comes from this source: http://groupware.les.inf.puc-rio.br/har
+
+- The "classe" variable in the training set is the manner in which they did their exercise
+
+The output of this report should include:
+
+- Description how you built your model
+
+- How cross validation is used
+
+- The expected out of sample error 
+
+```{r, echo=FALSE}
+library(caret)
+data <- read.csv("pml-training.csv")
+```
+
+###Exploring and understanding the data:
+
+```{r}
+dim(data)
+str(data[,15:20])
+```
+###Cleaning the data
+As we can see there are many NAs and "#DIV/0!" that will be irrelevant for our analysis. I'll now load the data setting all those to be NAs. Additionally the first 7 variables are not useful for our analysis as they are time related and non-movement variables. Finally I'll remove all columns where any elements are NAs. 
+As we can see below all columns with NA values have over 19k NAs, which represents most of its rows, so we can safely delete them.
+
+```{r}
+data <- read.csv("pml-training.csv", na.strings = c("NA","", "#DIV/0!"))
+table(colSums(is.na(data)))
+data <- data[,colSums(!is.na(data))==nrow(data)]
+data <- data[,c(-1:-7)]
+```
+###Cross validation
+I'll divide the data into a training set and a test set. The split being 70/30.
+The idea behind is:
+
+- Build the model in the training set
+
+- Evaluate on the test
+
+- Estimate the out of sample error
+
+```{r}
+TrainData <- createDataPartition(y =data$classe , p=0.7, list = FALSE)
+training <- data[TrainData,]
+testing <- data[-TrainData,]
+dim(training)
+```
+Now we have brought the varibles down to 52 (+1 that is the output) so probably any algorithm will be rather slow as we have arround 13k observations.
+
+###Buiding the model Machine Learning algorithm
+In order to see if we can reduce them we can run a test (random forrest) with just a few iterations and rank the importance of the variables. This could provide a good overview of the dataset we have and if we can eliminate some variables:
+
+
+```{r, eval=FALSE}
+modFit <- train(classe ~ ., data=training, methods='rf', number = 3, repeats = 3, ntree=5)
+modfitImp <- varImp(modFit)
+```
+
+```{r}
+plot(modfitImp, top = 10)
+```
+
+As we can see from this plot some variables have relatively high importance when it comes to explaining the outcome. 
+
+Let's explore the top two variables in terms of importance:
+```{r}
+qplot(training$roll_belt, training$pitch_forearm, colour = classe, data = training)
+```
+
+There seems to be some paterns that explain the different exercises.
+
+### Building the final model
+I'll include the first 10 predictors and see what the new model looks like. 
+Now that the dimensions will be reduced we can increase the number of trees in the simulation to a more significant number (500).
+
+
+```{r}
+variables <- c("roll_belt", "pitch_forearm", "yaw_belt", "pitch_belt", "magnet_dumbbell_z", "magnet_dumbbell_y", "roll_forearm", "accel_dumbbell_y", "magnet_dumbbell_x", "roll_dumbbell", "classe")
+```{r, eval=FALSE}
+training <- (training[, variables])
+modFit2 <- train(classe ~ ., data=training, methods='rf', number = 3, repeats = 3, ntree=500)
+```
+
+### Cross Validation
+
+Let's test the model in our training dataset and see the results in a table:
+```{r}
+testing <- (testing[, variables])
+pred <- predict(modFit2, testing)
+table(pred, testing$classe)
+```
+
+### Out of sample error
+From here we can calculate the out of sample error with the function confusionMatrix:
+```{r}
+confusionMatrix(testing$classe,pred)
+```
+The model seems to be pretty accurate (0.9874)
